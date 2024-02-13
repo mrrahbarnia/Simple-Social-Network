@@ -16,8 +16,8 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
 LOCAL_APPS = [
     'socialnetwork.core.apps.CoreConfig',
     'socialnetwork.common.apps.CommonConfig',
-    'socialnetwork.users.apps.UsersConfig',
     'socialnetwork.authentication.apps.AuthenticationConfig',
+    'socialnetwork.users.apps.UsersConfig',
 ]
 
 THIRD_PARTY_APPS = [
