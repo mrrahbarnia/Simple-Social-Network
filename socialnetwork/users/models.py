@@ -56,3 +56,16 @@ class BaseUser(BaseModel, AbstractBaseUser, PermissionsMixin):
     
     def is_staff(self):
         return self.is_admin
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(
+        BaseUser, on_delete=models.CASCADE, related_name='profile'
+    )
+    posts_count = models.PositiveIntegerField(default=0)
+    subscribers_count = models.PositiveIntegerField(default=0)
+    subscriptions_count = models.PositiveIntegerField(default=0)
+    bio = models.TextField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f'{self.user.email} >> {self.bio}'
