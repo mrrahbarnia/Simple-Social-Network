@@ -6,6 +6,7 @@ from rest_framework import (
     status
 )
 from drf_spectacular.utils import extend_schema
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from socialnetwork.api.mixins import ApiAuthMixin
 from .selectors import get_profile
@@ -81,10 +82,24 @@ class RegisterApiView(APIView):
 
 
     class OutputRegisterSerializer(serializers.ModelSerializer):
-        
+
+        token = serializers.SerializerMethodField()
+
         class Meta:
             model = BaseUser
-            fields = ('email', )
+            fields = ('email', 'token')
+
+        def get_token(self, user):
+            data = {}
+
+            token_class = RefreshToken
+            refresh = token_class.for_user(user)
+
+            data['access'] = str(refresh.access_token)
+            data['refresh'] = str(refresh)
+
+            return data
+
 
     @extend_schema(request=InputRegisterSerializer, responses=OutputRegisterSerializer)
     def post(self, request, *args, **kwargs):
