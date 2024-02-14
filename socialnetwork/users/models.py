@@ -4,7 +4,6 @@ from django.contrib.auth.base_user import (
     BaseUserManager as BUM
 )
 from django.contrib.auth.models import PermissionsMixin
-from django.utils.translation import gettext_lazy as _
 
 from socialnetwork.common.models import BaseModel
 
@@ -13,7 +12,7 @@ class BaseUserManager(BUM):
 
     def create_user(self, email, is_active=True, is_admin=False, password=None):
         if not email:
-            raise ValueError(_("Users must have an email address"))
+            raise ValueError("Users must have an email address")
 
         user = self.model(email=self.normalize_email(email.lower()), is_active=is_active, is_admin=is_admin)
 
@@ -43,7 +42,7 @@ class BaseUserManager(BUM):
 
 class BaseUser(BaseModel, AbstractBaseUser, PermissionsMixin):
 
-    email = models.EmailField(_("email address"), unique=True)
+    email = models.EmailField(verbose_name='email address', unique=True)
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
