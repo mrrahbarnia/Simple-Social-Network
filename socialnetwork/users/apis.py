@@ -7,7 +7,7 @@ from rest_framework import (
 )
 from drf_spectacular.utils import extend_schema
 
-from api.mixins import ApiAuthMixin
+from socialnetwork.api.mixins import ApiAuthMixin
 from .selectors import get_profile
 from .services import register
 from .models import (
@@ -29,7 +29,7 @@ class ProfileApiView(ApiAuthMixin, APIView):
         class Meta:
             model = Profile
             fields = (
-                'bio', 'posts_counter',
+                'bio', 'posts_count',
                 'subscribers_count', 'subscriptions_count'
             )
     
@@ -93,9 +93,9 @@ class RegisterApiView(APIView):
 
         try:
             user = register(
-                serializer.validated_data.get('email'),
-                serializer.validated_data.get('password'),
-                serializer.validated_data.get('bio')
+                email=serializer.validated_data.get('email'),
+                password=serializer.validated_data.get('password'),
+                bio=serializer.validated_data.get('bio')
             )
         except Exception as ex:
             return Response(
