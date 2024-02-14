@@ -1,3 +1,4 @@
+from django.core.validators import MinLengthValidator
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import (
@@ -7,6 +8,11 @@ from rest_framework import (
 from drf_spectacular.utils import extend_schema
 
 from .models import BaseUser
+from .validators import (
+    number_validator,
+    letter_validator,
+    special_char_validator
+)
 
 
 class RegisterApiView(APIView):
@@ -14,8 +20,29 @@ class RegisterApiView(APIView):
 
     class InputRegisterSerializer(serializers.Serializer):
         email = serializers.EmailField()
-        password = serializers.CharField(max_length=255)
+        password = serializers.CharField(
+            validators=[
+                MinLengthValidator(limit_value=10),
+                number_validator,
+                letter_validator,
+                special_char_validator
+            ]
+        )
         confirm_password = serializers.CharField(max_length=255)
+
+        def validate_email(self, email):
+            if BaseUser.objects.filter(email=email).exists():
+                raise serializers.ValidationError(
+                    'The provided email has already been taken.'
+                )
+            return email
+
+        def validate(self, attrs):
+            if attrs.get('password') != attrs.get('confirm_password'):
+                raise serializers.ValidationError(
+                    'Passwords are not equal...'
+                )
+            return attrs
 
 
     class OutputRegisterSerializer(serializers.ModelSerializer):
