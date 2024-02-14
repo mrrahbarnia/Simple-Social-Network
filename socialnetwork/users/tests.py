@@ -1,19 +1,27 @@
 import pytest
 
-from .services import create_user
-from .models import BaseUser
+from .selectors import get_profile
+from .services import register
+from .models import (
+    BaseUser,
+    Profile
+)
 
 
 class TestUserBusinessLogic:
 
-    def test_create_user_business_logic(self):
+    @pytest.mark.django_db
+    def test_user_business_logics(self):
         email = 'example@gmail.com'
         password = 'example@example12345'
 
-        create_user(email=email, password=password)
+        register(email=email, password=password, bio=None)
 
-        sample_user = BaseUser.objects.filter(email=email).exists()
+        sample_user = BaseUser.objects.get(email=email)
+        sample_profile = Profile.objects.get(user=sample_user)
 
-        assert sample_user == True
+        selected_profile = get_profile(user=sample_user)
 
-
+        assert sample_user,email == 'example@gmail.com'
+        assert sample_profile.user == sample_user
+        assert selected_profile == sample_profile

@@ -7,12 +7,46 @@ from rest_framework import (
 )
 from drf_spectacular.utils import extend_schema
 
-from .models import BaseUser
+from api.mixins import ApiAuthMixin
+from .selectors import get_profile
+from .services import register
+from .models import (
+    BaseUser,
+    Profile
+)
 from .validators import (
     number_validator,
     letter_validator,
     special_char_validator
 )
+
+
+class ProfileApiView(ApiAuthMixin, APIView):
+
+
+    class OutputProfileSerializer(serializers.ModelSerializer):
+
+        class Meta:
+            model = Profile
+            fields = (
+                'bio', 'posts_counter',
+                'subscribers_count', 'subscriptions_count'
+            )
+    
+    @extend_schema(responses=OutputProfileSerializer)
+    def get(self, request, *args, **kwargs):
+        try:
+            profile_obj = get_profile(user=request.user)
+        except Exception as ex:
+            return Response(
+                {'response': f'Database error {ex}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        response = self.OutputProfileSerializer(
+            profile_obj, context={'request': request}
+        ).data
+        return Response(response, status=status.HTTP_200_OK)
 
 
 class RegisterApiView(APIView):
@@ -29,6 +63,7 @@ class RegisterApiView(APIView):
             ]
         )
         confirm_password = serializers.CharField(max_length=255)
+        bio = serializers.CharField(max_length=1000, required=False)
 
         def validate_email(self, email):
             if BaseUser.objects.filter(email=email).exists():
@@ -57,9 +92,10 @@ class RegisterApiView(APIView):
         serializer.is_valid(raise_exception=True)
 
         try:
-            query = create_user(
+            user = register(
                 serializer.validated_data.get('email'),
-                serializer.validated_data.get('password')
+                serializer.validated_data.get('password'),
+                serializer.validated_data.get('bio')
             )
         except Exception as ex:
             return Response(
@@ -67,5 +103,5 @@ class RegisterApiView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        response = self.OutputRegisterSerializer(query, context={'request': request}).data
-        return Response(response)
+        response = self.OutputRegisterSerializer(user, context={'request': request}).data
+        return Response(response, status=status.HTTP_200_OK)
