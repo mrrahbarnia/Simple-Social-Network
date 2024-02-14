@@ -1,4 +1,5 @@
 from django.urls import path, include
 
 urlpatterns = [
+    path('users/', include('socialnetwork.users.urls', namespace='users'))
 ]
