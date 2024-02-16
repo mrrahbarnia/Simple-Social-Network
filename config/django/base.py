@@ -18,6 +18,7 @@ LOCAL_APPS = [
     'socialnetwork.common.apps.CommonConfig',
     'socialnetwork.authentication.apps.AuthenticationConfig',
     'socialnetwork.users.apps.UsersConfig',
+    'socialnetwork.blog.apps.BlogConfig',
 ]
 
 THIRD_PARTY_APPS = [

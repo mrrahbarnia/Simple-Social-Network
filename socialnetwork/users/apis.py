@@ -40,7 +40,7 @@ class ProfileApiView(ApiAuthMixin, APIView):
             profile_obj = get_profile(user=request.user)
         except Exception as ex:
             return Response(
-                {'response': f'Database error {ex}'},
+                {'response': f'Database error => {ex}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -114,7 +114,7 @@ class RegisterApiView(APIView):
             )
         except Exception as ex:
             return Response(
-                {'response': f'Database error {ex}'},
+                {'response': f'Database error => {ex}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
