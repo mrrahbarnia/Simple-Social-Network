@@ -9,16 +9,27 @@ from ..models import (
 
 def post_list(*, filters=None, user:BaseUser, self_include:bool = True) -> QuerySet[Post]:
     filters = filters or {}
-    subscription = list(
+    subscriptions = list(
         Subscription.objects.filter(subscriber=user).values_list('target', flat=True)
     )
 
     if self_include:
-        subscription.append(user.id)
+        subscriptions.append(user.id)
 
-    if subscription:
-        queryset = Post.objects.filter(author__in=subscription)
+    if subscriptions:
+        queryset = Post.objects.select_related('author').filter(author__in=subscriptions)
         return PostFilter(filters, queryset).qs
 
     return Post.objects.none()
 
+def post_detail(*, slug:str, user:BaseUser, self_include:bool = True) -> Post:
+    subscriptions = list(Subscription.objects.filter(
+        subscriber=user).values_list('target', flat=True)
+    )
+    if self_include:
+        subscriptions.append(user.id)
+
+    if subscriptions:
+        return Post.objects.get(slug=slug, author__in=subscriptions)
+
+    return Post.objects.none()

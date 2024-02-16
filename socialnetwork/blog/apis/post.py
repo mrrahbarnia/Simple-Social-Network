@@ -14,11 +14,11 @@ from socialnetwork.api.pagination import (
 )
 
 from ..services.post import create_post
-from ..selectors.post import post_list
-from ..models import (
-    Post,
-    Subscription
+from ..selectors.post import (
+    post_list,
+    post_detail
 )
+from ..models import Post
 
 
 class PostAPiView(ApiAuthMixin, APIView):
@@ -50,19 +50,19 @@ class PostAPiView(ApiAuthMixin, APIView):
 
     class OutputPostSerializer(serializers.ModelSerializer):
         author = serializers.SerializerMethodField()
-        # absolute_url = serializers.SerializerMethodField()
+        absolute_url = serializers.SerializerMethodField()
 
         class Meta:
             model = Post
-            fields = ('title', 'content', 'author',)
+            fields = ('title', 'content', 'author', 'absolute_url')
         
         def get_author(self, post):
             return post.author.email
 
-        # def get_absolute_url(self, post):
-        #     request = self.context.get('request')
-        #     path = reverse('api:blog:post_detail', args=[post.slug])
-        #     return request.build_absolute_uri(path)
+        def get_absolute_url(self, post):
+            request = self.context.get('request')
+            path = reverse('api:blog:post_detail', args=[post.slug])
+            return request.build_absolute_uri(path)
 
     @extend_schema(
             parameters=[FilterSerializer],
@@ -100,7 +100,7 @@ class PostAPiView(ApiAuthMixin, APIView):
 
         try:
             post = create_post(
-                author = request.user,
+                user = request.user,
                 title = serializer.validated_data.get('title'),
                 content = serializer.validated_data.get('content')
             )
@@ -117,4 +117,34 @@ class PostAPiView(ApiAuthMixin, APIView):
 
 
 class PostDetailApiView(ApiAuthMixin, APIView):
-    pass
+
+    class OutputPostDetailSerializer(serializers.ModelSerializer):
+        author = serializers.SerializerMethodField()
+
+        class Meta:
+            model = Post
+            fields = ('author', 'title', 'content', 'created_at', 'updated_at')
+        
+        def get_author(self, post):
+            return post.author.email
+
+    @extend_schema(
+            responses=OutputPostDetailSerializer
+    )
+    def get(self, request, slug=None, *args, **kwargs):
+        try:
+            post = post_detail(
+                slug=slug,
+                user=request.user
+            )
+        except Exception as ex:
+            return Response(
+                {'response': f'Database error => {ex}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        response = self.OutputPostDetailSerializer(post).data
+        return Response(
+            response,
+            status=status.HTTP_200_OK
+        )
