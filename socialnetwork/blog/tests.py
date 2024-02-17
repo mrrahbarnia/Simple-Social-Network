@@ -2,9 +2,12 @@ import pytest
 
 from socialnetwork.users.models import BaseUser
 from .services.post import create_post
-from .selectors.post import (
-    post_list,
-    post_detail
+from .services.subscription import (
+    subscribe,
+    unsubscribe
+)
+from .selectors.subscription import (
+    get_subscribers
 )
 from .models import (
     Post,
@@ -34,4 +37,29 @@ class TestBlogBusinessLogic:
         )
 
         assert Post.objects.all().count() == 2
+    
+    @pytest.mark.django_db
+    def test_subscription_business_logic(self):
+        user = BaseUser.objects.create_user(
+            email='user@example.com',
+            password='1234@example.com'
+        )
+        user1 = BaseUser.objects.create_user(
+            email='user1@example.com',
+            password='1234@example.com'
+        )
+        user2 = BaseUser.objects.create_user(
+            email='user2@example.com',
+            password='1234@example.com'
+        )
+        subscribe(user=user, email=user1)
+        subscribe(user=user, email=user2)
+
+        subscribers = get_subscribers(user=user)
+        assert len(subscribers) == 2
+
+        unsubscribe(user=user, email=user1)
+
+        subscribers = get_subscribers(user=user)
+        assert len(subscribers) == 1
 
