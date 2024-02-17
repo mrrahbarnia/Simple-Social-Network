@@ -1,4 +1,5 @@
 from django.core.validators import MinLengthValidator
+from django.core.cache import cache
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import (
@@ -9,6 +10,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from socialnetwork.api.mixins import ApiAuthMixin
+from socialnetwork.blog.services.caches import profile_cache
 from .selectors import get_profile
 from .services import register
 from .models import (
@@ -36,18 +38,22 @@ class ProfileApiView(ApiAuthMixin, APIView):
     
     @extend_schema(responses=OutputProfileSerializer)
     def get(self, request, *args, **kwargs):
-        try:
-            profile_obj = get_profile(user=request.user)
-        except Exception as ex:
-            return Response(
-                {'response': f'Database error => {ex}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        cached_profile = cache.get(f'profile_{request.user.email}')
+        if cached_profile:
+            return Response(cached_profile)
+        else:
+            try:
+                profile_obj = get_profile(user=request.user)
+            except Exception as ex:
+                return Response(
+                    {'response': f'Database error => {ex}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        response = self.OutputProfileSerializer(
-            profile_obj, context={'request': request}
-        ).data
-        return Response(response, status=status.HTTP_200_OK)
+            response = self.OutputProfileSerializer(
+                profile_obj, context={'request': request}
+            ).data
+            return Response(response, status=status.HTTP_200_OK)
 
 
 class RegisterApiView(APIView):

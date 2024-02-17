@@ -9,10 +9,7 @@ from .services.subscription import (
 from .selectors.subscription import (
     get_subscribers
 )
-from .models import (
-    Post,
-    Subscription
-)
+from .models import Post
 
 
 class TestBlogBusinessLogic:

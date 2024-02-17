@@ -13,7 +13,10 @@ from socialnetwork.api.pagination import (
     get_paginated_response_context
 )
 
-from ..services.post import create_post
+from ..services.post import (
+    create_post,
+    delete_post
+)
 from ..selectors.post import (
     post_list,
     post_detail
@@ -148,3 +151,17 @@ class PostDetailApiView(ApiAuthMixin, APIView):
             response,
             status=status.HTTP_200_OK
         )
+
+    def delete(self, request, slug, *args, **kwargs):
+        try:
+            delete_post(
+                slug=slug,
+                user=request.user
+            )
+        except Exception as ex:
+            return Response(
+                {'response': f'Database error => {ex}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        return Response(status.HTTP_204_NO_CONTENT)

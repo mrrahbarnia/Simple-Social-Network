@@ -1,5 +1,4 @@
 from django.db.models import QuerySet
-from rest_framework.exceptions import APIException
 
 from socialnetwork.users.models import BaseUser
 from ..models import Subscription
