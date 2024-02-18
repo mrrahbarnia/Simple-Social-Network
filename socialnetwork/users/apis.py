@@ -40,7 +40,7 @@ class ProfileApiView(ApiAuthMixin, APIView):
     def get(self, request, *args, **kwargs):
         cached_profile = cache.get(f'profile_{request.user.email}')
         if cached_profile:
-            return Response(cached_profile)
+            return Response(cached_profile, status=status.HTTP_200_OK)
         else:
             try:
                 profile_obj = get_profile(user=request.user)

@@ -1,6 +1,7 @@
 from django.core.cache import cache
 
 from socialnetwork.users.models import BaseUser
+from socialnetwork.users.models import Profile
 from ..models import (
     Subscription,
     Post
@@ -23,3 +24,18 @@ def profile_cache(*, user:BaseUser) -> None:
         'subscriptions_count': subscriptions_counter(user=user)
     }
     cache.set(key=f'profile_{user.email}', value=profile, timeout=None)
+
+def update_cache_profiles():
+    profiles = cache.keys('profile_*')
+
+    for profile_key in profiles: # profile_mohammadreza@gmail.com
+        email = profile_key.replace('profile_', '')
+        cached_data = cache.get(profile_key)
+        try:
+            profile = Profile.objects.get(user__email=email)
+            profile.posts_count = cached_data.get('posts_count')
+            profile.subscribers_count = cached_data.get('subscribers_count')
+            profile.subscriptions_count = cached_data.get('subscriptions_count')
+            profile.save()
+        except Exception as ex:
+            print(ex)
